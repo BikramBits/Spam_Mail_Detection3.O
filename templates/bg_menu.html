@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Service Hub - Pro Spam Shield</title>
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .hamburger { position: fixed; top: 20px; left: 20px; z-index: 1001; cursor: pointer; display: flex; flex-direction: column; justify-content: space-around; width: 30px; height: 25px; background: transparent; border: none; padding: 0; }
+        .hamburger div { width: 30px; height: 3px; background-color: #58a6ff; border-radius: 10px; }
+        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: #161b22; border-right: 1px solid #30363d; transition: 0.4s ease; z-index: 1000; padding: 80px 20px 20px 20px; }
+        .side-menu.active { left: 0; }
+        .menu-item { display: block; padding: 15px; color: #c9d1d9; text-decoration: none; border-bottom: 1px solid #21262d; }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+        
+        .container { width: 90%; max-width: 450px; background: #161b22; padding: 40px; border-radius: 12px; border: 1px solid #30363d; text-align: center; }
+        .status-badge { background: rgba(46, 160, 67, 0.15); color: #3fb950; padding: 6px 15px; border-radius: 20px; font-weight: bold; font-size: 13px; border: 1px solid #2ea043; }
+        .btn { display: block; width: 100%; padding: 15px; margin-top: 15px; border-radius: 6px; text-decoration: none; font-weight: bold; color: white; border: none; cursor: pointer; box-sizing: border-box;}
+        .btn-dash { background: #8957e5; }
+        .btn-inbox { background: #d29922; }
+        .btn-stop { background: transparent; border: 1px solid #30363d; color: #ff7b72; margin-top: 25px; }
+    </style>
+</head>
+<body>
+    <button class="hamburger" onclick="toggleMenu()"><div></div><div></div><div></div></button>
+    <div id="overlay" onclick="toggleMenu()"></div>
+    <nav class="side-menu" id="sideMenu">
+        <a href="/" class="menu-item">🏠 Main Home</a>
+        <a href="/manual" class="menu-item">✍️ Manual Scan</a>
+    </nav>
+
+    <div class="container">
+        <span class="status-badge">🟢 SERVICE RUNNING</span>
+        <h2 style="margin: 20px 0 10px 0;">Service Control Hub</h2>
+        <p style="color: #8b949e; font-size: 14px; margin-bottom: 30px;">Choose a way to view your live results.</p>
+        
+        <a href="/dashboard" class="btn btn-dash">📊 Analytics Dashboard</a>
+        <a href="/inbox" class="btn btn-inbox">📧 Real-Time Inbox</a>
+        <button onclick="stopSvc()" class="btn btn-stop">🛑 Stop Background Fetching and return to Home Menu</button>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.toggle('active');
+            document.getElementById('overlay').style.display = document.getElementById('sideMenu').classList.contains('active') ? 'block' : 'none';
+        }
+        function stopSvc() {
+            fetch('/api/stop_background', {method: 'POST'}).then(() => window.location.href = "/");
+        }
+    </script>
+</body>
+</html>
+

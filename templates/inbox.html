@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Inbox - Pro Spam Shield</title>
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, sans-serif; margin: 0; }
+        
+        .hamburger { position: fixed; top: 20px; left: 20px; z-index: 1001; cursor: pointer; display: flex; flex-direction: column; justify-content: space-around; width: 30px; height: 25px; background: transparent; border: none; padding: 0; }
+        .hamburger div { width: 30px; height: 3px; background-color: #58a6ff; border-radius: 10px; transition: 0.3s; }
+        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: #161b22; border-right: 1px solid #30363d; transition: 0.4s ease; z-index: 1000; padding: 80px 20px 20px 20px; }
+        .side-menu.active { left: 0; }
+        .menu-item { display: block; padding: 15px; color: #c9d1d9; text-decoration: none; border-bottom: 1px solid #21262d; font-size: 18px; }
+        .menu-item:hover { background: #21262d; color: #58a6ff; }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+
+        .header-bar { height: 60px; background: #161b22; border-bottom: 1px solid #30363d; display: flex; align-items: center; padding: 0 70px; position: sticky; top: 0; z-index: 10; }
+        .back-link { color: #58a6ff; text-decoration: none; font-size: 14px; font-weight: bold; }
+
+        .list-container { padding: 20px; max-width: 800px; margin: auto; }
+        .mail-row { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .mail-row:hover { border-color: #58a6ff; background: #1c2128; transform: translateY(-2px); }
+
+        .badge { font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 5px; text-transform: uppercase; }
+        .bg-SPAM { color: #ff7b72; background: rgba(248, 81, 73, 0.1); border: 1px solid rgba(248, 81, 73, 0.4); }
+        .bg-SUSPICIOUS { color: #ffa657; background: rgba(255, 166, 87, 0.1); border: 1px solid rgba(255, 166, 87, 0.4); }
+        .bg-SAFE { color: #3fb950; background: rgba(46, 160, 67, 0.1); border: 1px solid rgba(46, 160, 67, 0.4); }
+
+        #mail-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: #161b22; width: 95%; max-width: 700px; max-height: 85vh; border: 1px solid #30363d; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-header { padding: 25px; border-bottom: 1px solid #30363d; background: #0d1117; position: relative; }
+        .modal-body { padding: 25px; overflow-y: auto; line-height: 1.7; white-space: pre-wrap; font-size: 15px; color: #c9d1d9; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #8b949e; cursor: pointer; }
+        
+        .reasons-box { margin-bottom: 20px; padding: 15px; background: #0d1117; border-radius: 8px; border-left: 4px solid #30363d; }
+        .reasons-box h4 { margin: 0 0 10px 0; color: #c9d1d9; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;}
+        .reasons-list { margin: 0; padding-left: 20px; color: #8b949e; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <audio id="notification-sound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" type="audio/mpeg">
+    </audio>
+
+    <button class="hamburger" onclick="toggleMenu()"><div></div><div></div><div></div></button>
+    <div id="overlay" onclick="toggleMenu()"></div>
+    <nav class="side-menu" id="sideMenu">
+        <a href="/bg-menu" class="menu-item">🔙 Hub Menu</a>
+        <a href="/dashboard" class="menu-item">📊 Analytics Dashboard</a>
+        <a href="/" class="menu-item" style="color: #ff7b72;">🏠 Exit To Home</a>
+    </nav>
+
+    <div class="header-bar">
+        <a href="/bg-menu" class="back-link">⬅ Back to Hub</a>
+        <h3 style="margin-left: 20px; color: white;">Real-Time Threat Inbox</h3>
+    </div>
+
+    <div class="list-container" id="mail-list">
+        <div style="text-align: center; margin-top: 50px;">
+            <p style="color: #8b949e;">Connecting to background worker...</p>
+            <small>New emails will appear here automatically.</small>
+        </div>
+    </div>
+
+    <div id="mail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close-modal" onclick="closeMail()">&times;</span>
+                <div id="modal-badge"></div>
+                <h2 id="modal-subject" style="margin: 10px 0 5px 0; color: white; font-size: 20px;"></h2>
+                <small id="modal-sender" style="color: #8b949e;"></small>
+            </div>
+            <div class="modal-body">
+                <div class="reasons-box" id="reasons-container">
+                    <h4>AI Analysis Reasons</h4>
+                    <ul class="reasons-list" id="modal-reasons"></ul>
+                </div>
+                <div id="modal-body-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentEmails = [];
+        let lastEmailCount = 0;
+
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('overlay');
+            menu.classList.toggle('active');
+            overlay.style.display = menu.classList.contains('active') ? 'block' : 'none';
+        }
+
+        function loadInbox() {
+            fetch('/api/get_inbox')
+            .then(res => res.json())
+            .then(data => {
+                if (data.emails.length > lastEmailCount) {
+                    if (lastEmailCount !== 0) {
+                        const sound = document.getElementById('notification-sound');
+                        sound.play().catch(e => console.log("Sound played after user interaction."));
+                    }
+                    lastEmailCount = data.emails.length;
+                }
+                if(data.emails.length === 0) return;
+                currentEmails = data.emails; 
+                
+                const list = document.getElementById('mail-list');
+                list.innerHTML = data.emails.map((m, index) => `
+                    <div class="mail-row" onclick="viewMail(${index})">
+                        <div style="flex: 1; padding-right: 15px;">
+                            <strong style="display:block; color:white; margin-bottom: 3px;">${m.subject}</strong>
+                            <small style="color:#8b949e;">${m.sender}</small>
+                        </div>
+                        <span class="badge bg-${m.result}">${m.result}</span>
+                    </div>
+                `).join('');
+            });
+        }
+
+        function viewMail(index) {
+            const mail = currentEmails[index];
+            document.getElementById('modal-subject').innerText = mail.subject;
+            document.getElementById('modal-sender').innerText = "From: " + mail.sender;
+            document.getElementById('modal-body-text').innerText = mail.full_body;
+            
+            const badge = document.getElementById('modal-badge');
+            badge.innerHTML = `<span class="badge bg-${mail.result}">${mail.result} - ${mail.confidence}%</span>`;
+            
+            // Populate Reasons
+            const reasonsList = document.getElementById('modal-reasons');
+            reasonsList.innerHTML = mail.reasons.length > 0 
+                ? mail.reasons.map(r => `<li>${r}</li>`).join('') 
+                : "<li>No specific flags detected.</li>";
+
+            // Color coordinate the reasons box border
+            const rBox = document.getElementById('reasons-container');
+            if(mail.result === 'SPAM') rBox.style.borderLeftColor = '#ff7b72';
+            else if(mail.result === 'SUSPICIOUS') rBox.style.borderLeftColor = '#ffa657';
+            else rBox.style.borderLeftColor = '#3fb950';
+            
+            document.getElementById('mail-modal').style.display = 'flex';
+        }
+
+        function closeMail() { document.getElementById('mail-modal').style.display = 'none'; }
+        window.onclick = function(event) { if (event.target == document.getElementById('mail-modal')) closeMail(); }
+
+        loadInbox();
+        setInterval(loadInbox, 10000);
+    </script>
+</body>
+</html>
+

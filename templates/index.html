@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual Scan - Pro Spam Shield</title>
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .hamburger { position: fixed; top: 20px; left: 20px; z-index: 1001; cursor: pointer; display: flex; flex-direction: column; justify-content: space-around; width: 30px; height: 25px; background: transparent; border: none; padding: 0; }
+        .hamburger div { width: 30px; height: 3px; background-color: #58a6ff; border-radius: 10px; }
+        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: #161b22; border-right: 1px solid #30363d; transition: 0.4s ease; z-index: 1000; padding: 80px 20px 20px 20px; }
+        .side-menu.active { left: 0; }
+        .menu-item { display: block; padding: 15px; color: #c9d1d9; text-decoration: none; border-bottom: 1px solid #21262d; }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+        
+        .container { width: 90%; max-width: 600px; background: #161b22; padding: 30px; border-radius: 12px; border: 1px solid #30363d; position: relative; text-align: center; }
+        .back-btn { position: absolute; top: 15px; left: 15px; color: #58a6ff; text-decoration: none; font-size: 14px; }
+        textarea { width: 100%; height: 150px; background: #0d1117; color: white; border: 1px solid #30363d; border-radius: 8px; padding: 15px; margin-top: 20px; box-sizing: border-box; resize: none; }
+        button { width: 100%; padding: 12px; background: #238636; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        #result-box { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; text-align: left; }
+    </style>
+</head>
+<body>
+    <button class="hamburger" onclick="toggleMenu()"><div></div><div></div><div></div></button>
+    <div id="overlay" onclick="toggleMenu()"></div>
+    <nav class="side-menu" id="sideMenu">
+        <a href="/" class="menu-item">🏠 Home</a>
+        <a href="/auto-fetch" class="menu-item">📥 One-Time Fetch</a>
+        <a href="/bg-setup" class="menu-item">⚙️ Background Setup</a>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="back-btn">⬅ Home</a>
+        <h2 style="color: #58a6ff; margin-top: 10px;">✍️ Manual Threat Scan</h2>
+        <textarea id="scan-text" placeholder="Paste email content or text here..."></textarea>
+        <button onclick="runScan()">Analyze Text</button>
+        <div id="result-box"></div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.toggle('active');
+            document.getElementById('overlay').style.display = document.getElementById('sideMenu').classList.contains('active') ? 'block' : 'none';
+        }
+        function runScan() {
+            const text = document.getElementById('scan-text').value;
+            const resBox = document.getElementById('result-box');
+            if(!text) return;
+            fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'text=' + encodeURIComponent(text)
+            })
+            .then(res => res.json())
+            .then(data => {
+                resBox.style.display = 'block';
+                resBox.style.background = data.result === 'SPAM' ? '#3d1d1d' : '#1d3321';
+                resBox.innerHTML = `<h3 style="margin:0;">Result: ${data.result} (${data.confidence}%)</h3><p style="font-size:13px; color:#8b949e;">${data.reasons.join(', ')}</p>`;
+            });
+        }
+    </script>
+</body>
+</html>
+

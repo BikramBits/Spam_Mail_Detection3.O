@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Setup Background Fetch</title>
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { width: 90%; max-width: 450px; background: #161b22; padding: 30px; border-radius: 12px; border: 1px solid #30363d; position: relative; }
+        .back-btn { position: absolute; top: 15px; left: 15px; color: #58a6ff; text-decoration: none; font-size: 14px; }
+        h2 { text-align: center; color: #58a6ff; margin-top: 20px;}
+        input { width: 100%; padding: 12px; margin-bottom: 15px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #da3633; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        #error-msg { color: #ff7b72; text-align: center; display: none; margin-top: 15px; font-weight: bold; background: rgba(255, 123, 114, 0.1); padding: 10px; border-radius: 6px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">⬅ Home</a>
+        <h2>⚙️ Setup Background Service</h2>
+        <p style="color: #8b949e; text-align: center; font-size: 14px;">Enter credentials to continuously scan your inbox.</p>
+        
+        <input type="email" id="bg-email" placeholder="Gmail Address">
+        <input type="password" id="bg-pass" placeholder="16-Character App Password">
+        
+        <button id="start-btn" onclick="startBackground()">Verify & Start Fetching</button>
+        <div id="error-msg"></div>
+    </div>
+
+    <script>
+        function startBackground() {
+            const email = document.getElementById('bg-email').value;
+            const pass = document.getElementById('bg-pass').value;
+            const btn = document.getElementById('start-btn');
+            const errorMsg = document.getElementById('error-msg');
+
+            if(!email || !pass) {
+                errorMsg.innerText = "Please fill in both fields.";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            btn.innerText = "⏳ Verifying Credentials...";
+            btn.disabled = true;
+            errorMsg.style.display = "none";
+
+            fetch('/api/start_background', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: email, password: pass })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "error") {
+                    errorMsg.innerText = "❌ " + data.message;
+                    errorMsg.style.display = "block";
+                    btn.innerText = "Verify & Start Fetching";
+                    btn.disabled = false;
+                } else {
+                    window.location.href = "/bg-menu";
+                }
+            })
+            .catch(err => {
+                errorMsg.innerText = "❌ Network Error.";
+                errorMsg.style.display = "block";
+                btn.innerText = "Verify & Start Fetching";
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
+

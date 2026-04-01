@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Pro Spam Shield</title>
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .hamburger { position: fixed; top: 20px; left: 20px; z-index: 1001; cursor: pointer; display: flex; flex-direction: column; justify-content: space-around; width: 30px; height: 25px; background: transparent; border: none; padding: 0; }
+        .hamburger div { width: 30px; height: 3px; background-color: #58a6ff; border-radius: 10px; }
+        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: #161b22; border-right: 1px solid #30363d; transition: 0.4s ease; z-index: 1000; padding: 80px 20px 20px 20px; }
+        .side-menu.active { left: 0; }
+        .menu-item { display: block; padding: 15px; color: #c9d1d9; text-decoration: none; border-bottom: 1px solid #21262d; }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+
+        .container { width: 90%; max-width: 800px; text-align: center; position: relative; }
+        .back-btn { position: absolute; top: -40px; left: 0; color: #58a6ff; text-decoration: none; font-size: 14px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .card { background: #161b22; padding: 25px; border-radius: 10px; border: 1px solid #30363d; }
+        .card h2 { font-size: 32px; margin: 10px 0; }
+        .card p { color: #8b949e; margin: 0; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <button class="hamburger" onclick="toggleMenu()"><div></div><div></div><div></div></button>
+    <div id="overlay" onclick="toggleMenu()"></div>
+    <nav class="side-menu" id="sideMenu">
+        <a href="/bg-menu" class="menu-item">🔙 Hub Menu</a>
+        <a href="/inbox" class="menu-item">📧 Real-Time Inbox</a>
+        <a href="/" class="menu-item">🏠 Exit to Home</a>
+    </nav>
+
+    <div class="container">
+        <a href="/bg-menu" class="back-btn">⬅ Back to Hub</a>
+        <h1 style="color: white;">📊 Live Threat Analytics</h1>
+        <div class="grid">
+            <div class="card"><p>Total Scanned</p><h2 id="total">0</h2></div>
+            <div class="card" style="border-top: 3px solid #da3633;"><p>Spam Blocked</p><h2 id="spam" style="color: #ff7b72;">0</h2></div>
+            <div class="card" style="border-top: 3px solid #d29922;"><p>Suspicious</p><h2 id="susp" style="color: #d29922;">0</h2></div>
+            <div class="card" style="border-top: 3px solid #238636;"><p>Safe Mails</p><h2 id="safe" style="color: #3fb950;">0</h2></div>
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.toggle('active');
+            document.getElementById('overlay').style.display = document.getElementById('sideMenu').classList.contains('active') ? 'block' : 'none';
+        }
+        function updateStats() {
+            fetch('/api/dashboard_stats').then(res => res.json()).then(data => {
+                document.getElementById('total').innerText = data.total;
+                document.getElementById('spam').innerText = data.spam;
+                document.getElementById('susp').innerText = data.suspicious;
+                document.getElementById('safe').innerText = data.safe;
+            });
+        }
+        updateStats();
+        setInterval(updateStats, 5000);
+    </script>
+</body>
+</html>
+
