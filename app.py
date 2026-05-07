@@ -126,7 +126,7 @@ def background_email_worker():
                 ids = messages[0].split()
                 
                 if ids:
-                    latest_ids = ids[-10:]
+                    latest_ids = ids[-1:]
                     for num in latest_ids:
                         if num not in processed_email_ids:
                             processed_email_ids.add(num)
